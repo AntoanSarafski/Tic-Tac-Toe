@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import Board from "./board";
+import GameOver from "./GameOver";
+import GameState from "./GameState";
 
 const PLAYER_X = "X";
 const PLAYER_O = "O";
@@ -21,7 +23,7 @@ const winningCombinations = [
   { combo: [2, 4, 6], strikeClass: "strike-diagonal-2" },
 ];
 
-function checkWinner(tiles, setStrikeClass) {
+function checkWinner(tiles, setStrikeClass, setGameState) {
   for (const { combo, strikeClass } of winningCombinations) {
     const tileValue1 = tiles[combo[0]];
     const tileValue2 = tiles[combo[1]];
@@ -33,7 +35,18 @@ function checkWinner(tiles, setStrikeClass) {
       tileValue1 === tileValue3
     ) {
       setStrikeClass(strikeClass);
+      if (tileValue1 === PLAYER_X) {
+        setGameState(GameState.playerXWins);
+      } else {
+        setGameState(GameState.playerOWins);
+      }
+      return;
     }
+  }
+
+  const areAllTilesFilledIn = tiles.every((tile) => tile !== null);
+  if (areAllTilesFilledIn) {
+    setGameState(GameState.draw);
   }
 }
 
@@ -42,7 +55,9 @@ function TicTacToe() {
   const [playerTurn, setPlayerTurn] = useState(PLAYER_X);
   // How to check every move for winner ? Lets go.
   const [strikeClass, setStrikeClass] = useState();
-  // ez
+  // How to set GameState
+  const [gameState, setGameState] = useState(GameState.inProgress);
+
   const handleTileClick = (index) => {
     if (tiles[index] !== null) {
       return;
@@ -54,7 +69,7 @@ function TicTacToe() {
   };
 
   useEffect(() => {
-    checkWinner(tiles, setStrikeClass);
+    checkWinner(tiles, setStrikeClass, setGameState);
   }, [tiles]);
 
   return (
@@ -66,6 +81,7 @@ function TicTacToe() {
         onTileClick={handleTileClick}
         strikeClass={strikeClass}
       />
+      <GameOver gameState={gameState} />
     </div>
   );
 }
